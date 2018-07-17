@@ -4,13 +4,23 @@
 
     if (!empty($_POST)){
         $name = $_POST['input_name'];
+        $email = $_POST['input_email'];
+        $password = $_POST['input_password'];
 
         //ユーザー名の空チェック
         if ($name == '') {
             $errors['name'] = 'blank';
         }
+        if ($email == '') {
+            $errors['email'] = 'blank';
+        }
+        $count = strlen($password);
+        if ($password == '') {
+            $errors['password'] = 'blank';
+        } elseif ($count < 4 || 16 < $count) {
+            $errors['password'] = 'length';
+        }
     }
-
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -38,10 +48,16 @@
                     <div class="form-group">
                         <label for="email">メールアドレス</label>
                         <input type="email" name="input_email" class="form-control" id="email" placeholder="example@gmail.com">
+                        <?php if (isset($errors['email']) && $errors['email'] == 'blank'): ?>
+                            <p class="text-danger">メールアドレスを入力してください。</p>
+                        <?php endif; ?>
                     </div>
                     <div class="form-group">
                         <label for="password">パスワード</label>
                         <input type="password" name="input_password" class="form-control" id="password" placeholder="4 ~ 16文字のパスワード">
+                        <?php if (isset($errors['password']) && $errors['password'] == 'blank'): ?>
+                            <p class="text-danger">パスワードを入力してください。</p>
+                        <?php endif; ?>
                     </div>
                     <div class="form-group">
                         <label for="img_name">プロフィール画像</label>
