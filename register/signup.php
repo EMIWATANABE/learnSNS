@@ -17,7 +17,6 @@ if(isset($_GET['action']) && $_GET['action'] == 'rewrite'){
 }
 
     // PHPプログラム
-$errors = [];
 
 if (!empty($_POST)){
     $name = $_POST['input_name'];
