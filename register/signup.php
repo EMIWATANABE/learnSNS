@@ -3,6 +3,15 @@
 session_start();
 
 date_default_timezone_set('Asia/Manila');
+
+if(isset($_GET['action']) && $_GET['action'] == 'rewrite'){
+    $_POST['input_name'] = $_SESSION['register']['name'];
+    $_POST['input_email'] = $_SESSION['register']['email'];
+    $_POST['input_password'] = $_SESSION['register']['password'];
+
+    $errors['rewrite'] = true;
+}
+
     // PHPプログラム
 $errors = [];
 
@@ -25,7 +34,10 @@ if (!empty($_POST)){
         $errors['password'] = 'length';
     }
     //画像名を取得
-    $file_name = $_FILES['input_img_name']['name'];
+    $file_name = '';
+    if(!isset($_GET['action'])){
+        $file_name = $_FILES['input_img_name']['name'];
+    }
     if (!empty($file_name)){
     //拡張子チェックの処理
             $file_type = substr($file_name, -3);//画像名の後ろから3文字を取得

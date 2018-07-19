@@ -1,7 +1,13 @@
 <?php
 session_start();
 
+if (!isset($_SESSION['register'])){
+    header('Location: signup.php');
+    exit();
+}
+
 //出力テスト
+//多次元配列
 $name = $_SESSION['register']['name'];
 $email = $_SESSION['register']['email'];
 $password = $_SESSION['register']['password'];
