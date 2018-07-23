@@ -10,6 +10,25 @@ $stmt-> execute($data);
 
 $signin_user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+//初期化
+$errors = array();
+
+//ユーザーが投稿ボタンを押したら発動
+if (!empty($_POST)){
+
+    //バリデーション
+    $feed = $_POST['feed'];//投稿データ
+
+//投稿の空チェック
+    if ($feed != ''){
+        //投稿処理
+    }else{
+        $errors['feed'] = 'blank';
+
+    }
+
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -70,6 +89,8 @@ $signin_user = $stmt->fetch(PDO::FETCH_ASSOC);
           <form method="POST" action="">
             <div class="form-group">
               <textarea name="feed" class="form-control" rows="3" placeholder="Happy Hacking!" style="font-size: 24px;"></textarea><br>
+              <?php if (isset($errors['feed']) && $errors['feed'] == 'blank') { ?><p class = "alert alert-danger" >投稿データを入力してください</p>
+          <?php } ?>
             </div>
             <input type="submit" value="投稿する" class="btn btn-primary">
           </form>
