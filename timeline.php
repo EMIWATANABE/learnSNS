@@ -3,6 +3,11 @@
 session_start();
 require('dbconnect.php');
 
+    if (!isset($_SESSION['id'])) {
+        header('Location: signin.php');
+        exit();
+    }
+
 $sql = 'SELECT * FROM `users` WHERE `id`=?';
 $data = array($_SESSION['id']);
 $stmt = $dbh->prepare($sql);
@@ -22,6 +27,15 @@ if (!empty($_POST)){
 //投稿の空チェック
     if ($feed != ''){
         //投稿処理
+        $sql = 'INSERT INTO `feeds` SET `feed`=?, `user_id`=?, `created`=NOW()';
+        $data = array($feed, $signin_user['id']);
+        $stmt = $dbh->prepare($sql);
+        $stmt->execute($data);
+
+        header('Location: timeline.php');
+        exit();
+
+
     }else{
         $errors['feed'] = 'blank';
 
