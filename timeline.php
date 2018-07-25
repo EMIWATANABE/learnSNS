@@ -31,7 +31,6 @@ if (!empty($_POST)){
         $data = array($feed, $signin_user['id']);
         $stmt = $dbh->prepare($sql);
         $stmt->execute($data);
-
         header('Location: timeline.php');
         exit();
     }else{
