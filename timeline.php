@@ -3,6 +3,8 @@
 session_start();
 require('dbconnect.php');
 
+const CONTENT_PER_PAGE = 5;
+
     if (!isset($_SESSION['id'])) {
         header('Location: signin.php');
         exit();
@@ -17,6 +19,32 @@ $signin_user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 //初期化
 $errors = array();
+
+//何ページ目を開いているか取得する
+if (isset($_GET['page'])){
+  $page = $_GET['page'];
+}else{
+$page = 1;
+}
+
+//-1などのページ数として不正な数値を渡された場合の対策
+$page = max($page,1);
+
+//ヒットしたレコードの数を取得するSQL
+$sql_count = "SELECT COUNT(*) AS `cnt` FROM `feeds`";
+
+$stmt_count = $dbh->prepare($sql_count);
+$stmt_count->execute();
+
+$record_cnt = $stmt_count->fetch(PDO::FETCH_ASSOC);
+
+//取得したページ数を1ページあたりに表示する件数で割って何ページが最後になるか取得
+$last_page = ceil($record_cnt['cnt']/CONTENT_PER_PAGE);
+
+//最後のページより大きい値を渡された場合の対策
+$page = min($page,$last_page);
+
+$start = ($page - 1) * CONTENT_PER_PAGE;
 
 //ユーザーが投稿ボタンを押したら発動
 if (!empty($_POST)){
@@ -39,7 +67,7 @@ if (!empty($_POST)){
 }
 
     //LEFT JOINで全件取得
-    $sql = 'SELECT`f`.*,`u`.`name`,`u`.`img_name` FROM `feeds` AS `f` LEFT JOIN `users` AS `u` ON `f`.`user_id` = `u`.`id` ORDER BY `created` DESC';
+    $sql = 'SELECT`f`.*,`u`.`name`,`u`.`img_name` FROM `feeds` AS `f` LEFT JOIN `users` AS `u` ON `f`.`user_id` = `u`.`id` ORDER BY `created` DESC LIMIT '. CONTENT_PER_PAGE .' OFFSET ' . $start;
     $data = array();
     $stmt = $dbh->prepare($sql);
     $stmt->execute($data);
@@ -147,17 +175,30 @@ if (!empty($_POST)){
                 </form>
                 <span class="like_count">いいね数 : 100</span>
                 <span class="comment_count">コメント数 : 9</span>
-                  <a href="#" class="btn btn-success btn-xs">編集</a>
-                  <a href="#" class="btn btn-danger btn-xs">削除</a>
+                <?php if($feed['user_id'] == $_SESSION["id"]): ?>
+                  <a href="edit.php?feed_id=<?php echo $feed["id"] ?>"class="btn btn-success btn-xs">編集</a>
+                  <a onclick="return confirm('ほんとに消す？');" a href="?feed_id=<?php echo $feed["id"] ?>" class="btn btn-danger btn-xs">削除</a>
+                <?php endif; ?>
               </div>
             </div>
           </div>
       <?php } ?>
         <div aria-label="Page navigation">
           <ul class="pager">
-            <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span> Newer</a></li>
-            <li class="next"><a href="#">Older <span aria-hidden="true">&rarr;</span></a></li>
-          </ul>
+            <?php if ($page == 1): ?>
+            <li class="previous disabled"><a><span aria-hidden="true">&larr;</span>Newer</a></li>
+            <?php else: ?>
+              <li class="previous"><a href="timeline.php?page=<?= $page - 1; ?>"><span aria-hidden="true">&larr;</span> Newer</a></li>
+            <?php endif; ?>
+
+            <?php if ($page == $last_page): ?>
+
+              <il class="next disabled"><a>Older <span aria-hidden="true">&rarr;</span></a></il>
+
+              <?php else: ?>
+                <li class="next"><a href="timeline.php?page=<?= $page + 1; ?>">Older<span aria-hidden="true">&rarr;</span></a></li>
+                <?php endif; ?>
+                          </ul>
         </div>
       </div>
     </div>
