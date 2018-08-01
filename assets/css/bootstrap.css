@@ -1097,7 +1097,7 @@ textarea {
   line-height: inherit;
 }
 a {
-  color: #337ab7;
+  color: #ec971f;
   text-decoration: none;
 }
 a:hover,
@@ -4145,7 +4145,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .nav-pills > li.active > a:hover,
 .nav-pills > li.active > a:focus {
   color: #fff;
-  background-color: #337ab7;
+  background-color: orange;
 }
 .nav-stacked > li {
   float: none;
@@ -4541,8 +4541,8 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
   }
 }
 .navbar-default {
-  background-color: #f8f8f8;
-  border-color: #e7e7e7;
+  background-color: orange;
+  border-color: orange;
 }
 .navbar-default .navbar-brand {
   color: #777;
@@ -4567,7 +4567,7 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .navbar-default .navbar-nav > .active > a:hover,
 .navbar-default .navbar-nav > .active > a:focus {
   color: #555;
-  background-color: #e7e7e7;
+  background-color: orange;
 }
 .navbar-default .navbar-nav > .disabled > a,
 .navbar-default .navbar-nav > .disabled > a:hover,
@@ -6796,5 +6796,16 @@ button.close {
   .hidden-print {
     display: none !important;
   }
+}
+.box8 {
+    padding: 0.5em 1em;
+    margin: 2em 0;
+    color: #232323;
+    background: #fff8e8;
+    border-left: solid 10px #ffc06e;
+}
+.box8 p {
+    margin: 0; 
+    padding: 0;
 }
 /*# sourceMappingURL=bootstrap.css.map */

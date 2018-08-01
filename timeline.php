@@ -65,10 +65,14 @@ if (!empty($_POST)){
         $errors['feed'] = 'blank';
     }
 }
-
+ if (isset($_GET['search_word'])) {
+        $sql = 'SELECT `f`.*, `u`.`name`, `u`.`img_name` FROM `feeds` AS `f` LEFT JOIN `users` AS `u` ON `f`.`user_id`=`u`.`id` WHERE f.feed LIKE "%"? "%" ORDER BY `created` DESC LIMIT '. CONTENT_PER_PAGE .' OFFSET ' . $start;
+        $data = [$_GET['search_word']];
+    } else {
     //LEFT JOINで全件取得
     $sql = 'SELECT`f`.*,`u`.`name`,`u`.`img_name` FROM `feeds` AS `f` LEFT JOIN `users` AS `u` ON `f`.`user_id` = `u`.`id` ORDER BY `created` DESC LIMIT '. CONTENT_PER_PAGE .' OFFSET ' . $start;
     $data = array();
+  }
     $stmt = $dbh->prepare($sql);
     $stmt->execute($data);
 
@@ -80,6 +84,30 @@ if (!empty($_POST)){
     if ($record == false){
         break;
     }
+
+    //いいね済みかどうかの確認
+    $like_flg_sql = "SELECT * FROM `likes` WHERE `user_id` = ? AND `feed_id` = ?";
+
+    $like_flg_data = [$signin_user['id'],$record["id"]];
+    $like_flg_stmt = $dbh->prepare($like_flg_sql);
+    $like_flg_stmt->execute($like_flg_data);
+
+    $is_liked = $like_flg_stmt->fetch(PDO::FETCH_ASSOC);
+
+    //三項演算子 条件式？trueだった場合：falseだった場合
+    $record["is_liked"] = $is_liked ? true : false;
+
+    $like_sql = "SELECT COUNT(*) AS `like_cnt` FROM `likes` WHERE `feed_id` =?";
+
+    $like_data = [$record["id"]];
+
+    $like_stmt = $dbh->prepare($like_sql);
+    $like_stmt->execute($like_data);
+
+    $like = $like_stmt->fetch(PDO::FETCH_ASSOC);
+
+    $record["like_cnt"] = $like["like_cnt"];
+
     $feeds[] = $record;
     }
 
@@ -93,7 +121,7 @@ if (!empty($_POST)){
   <link rel="stylesheet" type="text/css" href="assets/font-awesome/css/font-awesome.css">
   <link rel="stylesheet" type="text/css" href="assets/css/style.css">
 </head>
-<body style="margin-top: 60px; background: #E4E6EB;">
+<body style="margin-top: 60px; background: lightyellow;">
   <div class="navbar navbar-default navbar-fixed-top">
     <div class="container">
       <div class="navbar-header">
@@ -118,7 +146,9 @@ if (!empty($_POST)){
         </form>
         <ul class="nav navbar-nav navbar-right">
           <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="user_profile_img/<?php echo $signin_user['img_name']; ?>" width="18" class="img-circle"><?php echo $signin_user['name']; ?><span class="caret"></span></a>
+            <span hidden id="signin-user"><?php echo $signin_user['id']; ?></span>
+
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><img src="user_profile_img/<?php echo $signin_user['img_name']; ?>" width="18" class="img-circle"> <?php echo $signin_user['name']; ?><span class="caret"></span></a>
             <ul class="dropdown-menu">
               <li><a href="#">マイページ</a></li>
               <li><a href="signout.php">サインアウト</a></li>
@@ -139,18 +169,18 @@ if (!empty($_POST)){
         </ul>
       </div>
       <div class="col-xs-9">
-        <div class="feed_form thumbnail">
+        <div class="feed_form box8">
           <form method="POST" action="">
             <div class="form-group">
               <textarea name="feed" class="form-control" rows="3" placeholder="Happy Hacking!" style="font-size: 24px;"></textarea><br>
               <?php if (isset($errors['feed']) && $errors['feed'] == 'blank') { ?><p class = "alert alert-danger" >投稿データを入力してください</p>
           <?php } ?>
             </div>
-            <input type="submit" value="投稿する" class="btn btn-primary">
+            <input type="submit" value="投稿する" class="btn btn-warning">
           </form>
         </div>
         <?php foreach($feeds as $feed){ ?>
-          <div class="thumbnail">
+          <div class="box8">
             <div class="row">
               <div class="col-xs-1">
                 <img src="user_profile_img/<?php echo $feed['img_name']; ?>" width="40">
@@ -161,23 +191,34 @@ if (!empty($_POST)){
               </div>
             </div>
             <div class="row feed_content">
-              <div class="col-xs-12" >
+              <br>
+              <div class="col-xs-12">
+              <div class="col-xs-10" style="background:#fff; padding: 10px; height: 5em; border-radius: 10px; border: 1px solid #fdd35c;">
                 <span style="font-size: 24px;"><?php echo $feed['feed']; ?></span>
               </div>
+              </div>
             </div>
+            <br>
             <div class="row feed_sub">
               <div class="col-xs-12">
-                <form method="POST" action="" style="display: inline;">
-                  <input type="hidden" name="feed_id" >
-
-                    <input type="hidden" name="like" value="like">
-                    <button type="submit" class="btn btn-default btn-xs"><i class="fa fa-thumbs-up" aria-hidden="true"></i>いいね！</button>
-                </form>
-                <span class="like_count">いいね数 : 100</span>
+                <span hidden class="feed-id"><?= $feed["id"] ?></span>
+                <?php if ($feed['is_liked']): ?>
+                <button class="btn btn-defalut btn-xs js-unlike">
+                  <i class="fa fa-thunbs-up" aria-hidden="true"></i>
+                  <span>いいねを取り消す</span>
+                </button>
+                <?php else: ?>
+                    <button class="btn btn-default btn-xs js-like">
+                        <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+                        <span>いいね!</span>
+                    </button>
+                  <?php endif; ?>
+                    <span>いいね数 : </span>
+                    <span class="like_count"><?= $feed['like_cnt'] ?></span>
                 <span class="comment_count">コメント数 : 9</span>
-                <?php if($feed['user_id'] == $_SESSION["id"]): ?>
-                  <a href="edit.php?feed_id=<?php echo $feed["id"] ?>"class="btn btn-success btn-xs">編集</a>
-                  <a onclick="return confirm('ほんとに消す？');" a href="?feed_id=<?php echo $feed["id"] ?>" class="btn btn-danger btn-xs">削除</a>
+                <?php if($feed["user_id"] == $_SESSION["id"]): ?>
+                  <a href="edit.php?feed_id=<?php echo $feed["id"] ?>"class="btn btn-default btn-xs"><font color="limegreen">編集</font></a>
+                  <a onclick="return confirm('ほんとに消す？');" href="delete.php?feed_id=<?php echo $feed["id"] ?>" class="btn btn-default btn-xs"><font color="indianred">削除</font></a>
                 <?php endif; ?>
               </div>
             </div>
@@ -206,5 +247,6 @@ if (!empty($_POST)){
   <script src="assets/js/jquery-3.1.1.js"></script>
   <script src="assets/js/jquery-migrate-1.4.1.js"></script>
   <script src="assets/js/bootstrap.js"></script>
+   <script src="assets/js/app.js"></script>
 </body>
 </html>

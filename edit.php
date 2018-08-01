@@ -11,6 +11,17 @@ $stmt->execute();
 
 $feed = $stmt->fetch(PDO::FETCH_ASSOC);
 
+if(!empty($_POST)){
+    $update_sql = "UPDATE `feeds` SET `feed` = ? WHERE `feeds` . `id` = ?";
+
+    $data = array($_POST["feed"],$feed_id);
+    $stmt = $dbh->prepare($update_sql);
+    $stmt->execute($data);
+
+    header("Location: timeline.php");
+    exit();
+}
+
 ?>
 
  <!DOCTYPE html>
@@ -28,7 +39,7 @@ $feed = $stmt->fetch(PDO::FETCH_ASSOC);
             <!-- ここにコンテンツ -->
             <div class="col-xs-4 col-xs-offset-4">
                 <form class="form-group" method="post">
-                    <img src="user_profile_img<?php echo $feed["img_name"]; ?>" width="60">
+                    <img src="user_profile_img/<?php echo $feed["img_name"]; ?>" width="60">
                     <?php echo $feed["name"]; ?><br>
                     <?php echo $feed["created"]; ?><br>
                     <textarea name="feed" class="form-control"><?php echo $feed["feed"]; ?></textarea>
